@@ -30,8 +30,11 @@ class RuleFile(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     filename: Mapped[str] = mapped_column(String(160), unique=True, index=True)
+    test_filename: Mapped[str] = mapped_column(String(180), default="")
+    description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(32), index=True)
     status_detail: Mapped[str] = mapped_column(Text, default="")
+    generation_log: Mapped[str] = mapped_column(Text, default="")
 
 
 class RuleSyncRun(Base):

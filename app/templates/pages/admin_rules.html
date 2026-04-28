@@ -34,18 +34,86 @@
       </form>
     </section>
 
+    <section class="admin-panel" aria-labelledby="generate-heading">
+      <h2 id="generate-heading">Generate Rule</h2>
+      {% if error %}
+        <p class="form-error">{{ error }}</p>
+      {% endif %}
+      <form class="admin-form rule-generate-form" method="post" action="/admin/rules/generate">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label>
+          Natural language description
+          <textarea name="description" rows="5" required placeholder="Example: Show a warning banner when any hoodie has fewer than 10 units in stock."></textarea>
+        </label>
+        <button type="submit">Generate Draft</button>
+      </form>
+    </section>
+
+    {% if generated %}
+      <section class="admin-panel" aria-labelledby="generated-heading">
+        <div class="section-heading compact-heading">
+          <div>
+            <h2 id="generated-heading">Codex Output</h2>
+            <p class="muted-text">{{ "Tests passed. Review and activate when ready." if generated.passed else "Draft preserved, but it is not active." }}</p>
+          </div>
+          {% if generated.passed %}
+            <form method="post" action="/admin/rules/{{ generated.rule_file.id }}/activate">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit">Activate</button>
+            </form>
+          {% endif %}
+        </div>
+        <div class="generated-output-grid">
+          <div>
+            <h3>{{ generated.rule_file.filename }}</h3>
+            <pre>{{ generated.rule_source }}</pre>
+          </div>
+          <div>
+            <h3>{{ generated.rule_file.test_filename }}</h3>
+            <pre>{{ generated.test_source }}</pre>
+          </div>
+        </div>
+        <h3>What Codex Did</h3>
+        <pre>{{ generated.rule_file.generation_log }}</pre>
+      </section>
+    {% endif %}
+
     <section class="admin-panel" aria-labelledby="rule-files-heading">
-      <h2 id="rule-files-heading">Rule Files</h2>
+      <div class="section-heading compact-heading">
+        <h2 id="rule-files-heading">Rules</h2>
+        <form method="post" action="/admin/rules/clear-active">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="danger-button" type="submit">Clear Active Rules</button>
+        </form>
+      </div>
       <div class="rule-file-list">
         {% for rule_file in rule_files %}
           <article class="rule-file-row">
             <div>
-              <h3>{{ rule_file.filename }}</h3>
+              <h3>{{ rule_file.description or rule_file.filename }}</h3>
               {% if rule_file.status_detail %}
                 <p>{{ rule_file.status_detail }}</p>
               {% endif %}
             </div>
-            <span class="status-pill status-{{ rule_file.status }}">{{ rule_file.status.replace("_", " ") }}</span>
+            <div class="rule-row-actions">
+              <span class="status-pill status-{{ rule_file.status }}">{{ rule_file.status.replace("_", " ") }}</span>
+              {% if rule_file.status != "active" and rule_file.status != "quarantined" %}
+                <form method="post" action="/admin/rules/{{ rule_file.id }}/activate">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button class="secondary-button" type="submit">Activate</button>
+                </form>
+              {% endif %}
+              {% if rule_file.status == "active" %}
+                <form method="post" action="/admin/rules/{{ rule_file.id }}/deactivate">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button class="secondary-button" type="submit">Deactivate</button>
+                </form>
+              {% endif %}
+              <form method="post" action="/admin/rules/{{ rule_file.id }}/delete">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="danger-button" type="submit">Delete</button>
+              </form>
+            </div>
           </article>
         {% else %}
           <p class="muted-text">No rule files found.</p>

@@ -26,6 +26,8 @@ RULES_DIR = Path("rules")
 ACTIVE = "active"
 QUARANTINED = "quarantined"
 INACTIVE_DRAFT = "inactive_draft"
+INACTIVE = "inactive"
+PRESERVED_INACTIVE_STATUSES = {INACTIVE_DRAFT, INACTIVE}
 
 
 @dataclass(frozen=True)
@@ -48,7 +50,7 @@ def list_rule_files(session: Session) -> list[RuleFile]:
         record = _get_or_create_rule_file(session, path.name)
         try:
             validate_rule_file(path)
-            _load_rule(path)
+            rule = _load_rule(path)
         except RuleValidationError as exc:
             record.status = QUARANTINED
             record.status_detail = str(exc)
@@ -56,7 +58,11 @@ def list_rule_files(session: Session) -> list[RuleFile]:
             record.status = QUARANTINED
             record.status_detail = f"{path.name} is not loadable: {exc}"
         else:
-            if record.status != INACTIVE_DRAFT:
+            if not record.description:
+                record.description = rule.description
+            if not record.test_filename:
+                record.test_filename = f"tests/rules/test_{path.stem}.py"
+            if record.status not in PRESERVED_INACTIVE_STATUSES:
                 record.status = ACTIVE
                 record.status_detail = ""
     session.commit()
@@ -144,6 +150,62 @@ def list_current_actions(session: Session) -> list[DispatchedRuleAction]:
     )
 
 
+def activate_rule(session: Session, rule_file_id: int) -> RuleFile | None:
+    record = session.get(RuleFile, rule_file_id)
+    if record is None:
+        return None
+    path = RULES_DIR / record.filename
+    try:
+        validate_rule_file(path)
+        rule = _load_rule(path)
+    except RuleValidationError as exc:
+        record.status = QUARANTINED
+        record.status_detail = str(exc)
+    except Exception as exc:
+        record.status = QUARANTINED
+        record.status_detail = f"{record.filename} is not loadable: {exc}"
+    else:
+        record.status = ACTIVE
+        record.status_detail = ""
+        if not record.description:
+            record.description = rule.description
+    session.commit()
+    return record
+
+
+def deactivate_rule(session: Session, rule_file_id: int) -> RuleFile | None:
+    record = session.get(RuleFile, rule_file_id)
+    if record is None:
+        return None
+    record.status = INACTIVE
+    record.status_detail = ""
+    _delete_actions_for_rule(session, record.filename)
+    session.commit()
+    return record
+
+
+def delete_rule(session: Session, rule_file_id: int) -> bool:
+    record = session.get(RuleFile, rule_file_id)
+    if record is None:
+        return False
+    filename = record.filename
+    _delete_rule_files(record)
+    _delete_actions_for_rule(session, filename)
+    session.delete(record)
+    session.commit()
+    return True
+
+
+def clear_active_rules(session: Session) -> int:
+    records = list(session.scalars(select(RuleFile).where(RuleFile.status == ACTIVE)).all())
+    for record in records:
+        _delete_rule_files(record)
+        _delete_actions_for_rule(session, record.filename)
+        session.delete(record)
+    session.commit()
+    return len(records)
+
+
 def visibility_by_sku(session: Session) -> dict[str, str]:
     actions = session.scalars(
         select(DispatchedRuleAction).where(DispatchedRuleAction.action_type == "set_visibility")
@@ -177,7 +239,14 @@ def _iter_rule_paths() -> list[Path]:
 def _get_or_create_rule_file(session: Session, filename: str) -> RuleFile:
     record = session.scalar(select(RuleFile).where(RuleFile.filename == filename))
     if record is None:
-        record = RuleFile(filename=filename, status=ACTIVE, status_detail="")
+        record = RuleFile(
+            filename=filename,
+            test_filename=f"tests/rules/test_{Path(filename).stem}.py",
+            description="",
+            status=ACTIVE,
+            status_detail="",
+            generation_log="",
+        )
         session.add(record)
         session.flush()
     return record
@@ -244,3 +313,22 @@ def _quarantine_rule(session: Session, filename: str, detail: str) -> None:
 
 def _count_quarantined(session: Session) -> int:
     return len(session.scalars(select(RuleFile).where(RuleFile.status == QUARANTINED)).all())
+
+
+def _delete_actions_for_rule(session: Session, filename: str) -> None:
+    session.execute(delete(DispatchedRuleAction).where(DispatchedRuleAction.rule_filename == filename))
+
+
+def _delete_rule_files(record: RuleFile) -> None:
+    for path in _rule_paths_for_record(record):
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def _rule_paths_for_record(record: RuleFile) -> list[Path]:
+    paths = [RULES_DIR / record.filename]
+    test_filename = record.test_filename or f"tests/rules/test_{Path(record.filename).stem}.py"
+    paths.append(Path(test_filename))
+    return paths

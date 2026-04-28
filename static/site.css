@@ -350,6 +350,8 @@ a {
 
 .admin-form button,
 .rules-sync-panel button,
+.compact-heading button,
+.rule-row-actions button,
 .secondary-button,
 .danger-button {
   align-self: end;
@@ -498,6 +500,56 @@ a {
   color: #4b5563;
 }
 
+.status-inactive {
+  background: #f4f6f8;
+  color: #4b5563;
+}
+
+.rule-generate-form {
+  margin-top: 18px;
+}
+
+.compact-heading {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.generated-output-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 22px;
+}
+
+.generated-output-grid h3,
+.admin-panel > h3 {
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+}
+
+.admin-panel pre {
+  background: #101418;
+  border-radius: 8px;
+  color: #eef3f7;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+  max-height: 520px;
+  overflow: auto;
+  padding: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rule-row-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 @media (max-width: 760px) {
   .site-header {
     height: 56px;
@@ -526,6 +578,14 @@ a {
   .rule-file-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .generated-output-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-row-actions {
+    justify-content: flex-start;
   }
 
   .admin-dashboard-grid {

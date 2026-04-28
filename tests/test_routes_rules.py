@@ -2,10 +2,13 @@ import asyncio
 import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from httpx import ASGITransport, AsyncClient
 
 from app.main import create_app
+from app.models import RuleFile
+from app.services.codex_client import RuleGenerationResult
 
 
 def test_admin_rules_requires_login(tmp_path):
@@ -26,7 +29,7 @@ def test_admin_rules_sync_updates_storefront_badges(tmp_path):
 
             rules_response = await client.get("/admin/rules")
             assert rules_response.status_code == 200
-            assert "example_clearance.py" in rules_response.text
+            assert "Marks products at or below the low-stock threshold" in rules_response.text
             csrf_token = _extract_csrf(rules_response.text)
 
             sync_response = await client.post(
@@ -46,6 +49,116 @@ def test_admin_rules_sync_updates_storefront_badges(tmp_path):
 
             detail_response = await client.get("/products/mens-commute-hoodie")
             assert "Low stock" in detail_response.text
+
+    asyncio.run(exercise())
+
+
+def test_admin_rules_generate_shows_inactive_draft(monkeypatch, tmp_path):
+    rule_path = Path("rules/session4_generated_route.py")
+    test_path = Path("tests/rules/test_session4_generated_route.py")
+
+    def fake_generate_rule_draft(session, description):
+        rule_source = (
+            "from rules._base import InventorySnapshot, Rule\n\n"
+            "def evaluate(snapshot: InventorySnapshot):\n"
+            "    return []\n\n"
+            "RULE = Rule(name='Route test', description='Route generated rule', evaluate=evaluate)\n"
+        )
+        test_source = "def test_route_generated_rule():\n    assert True\n"
+        rule_path.write_text(rule_source)
+        test_path.write_text(test_source)
+        record = RuleFile(
+            filename=rule_path.name,
+            test_filename=str(test_path),
+            description=description,
+            status="inactive_draft",
+            status_detail="Ready to activate.",
+            generation_log="1 passed",
+        )
+        session.add(record)
+        session.commit()
+        session.refresh(record)
+        return RuleGenerationResult(record, rule_source, test_source, "1 passed", True)
+
+    monkeypatch.setattr("app.routes.rules.generate_rule_draft", fake_generate_rule_draft)
+
+    async def exercise() -> None:
+        try:
+            async with _client(tmp_path) as client:
+                await _login(client)
+                rules_response = await client.get("/admin/rules")
+                csrf_token = _extract_csrf(rules_response.text)
+
+                response = await client.post(
+                    "/admin/rules/generate",
+                    data={
+                        "csrf_token": csrf_token,
+                        "description": "Show a route test banner",
+                    },
+                )
+
+                assert response.status_code == 200
+                assert "Codex Output" in response.text
+                assert "Show a route test banner" in response.text
+                assert "inactive draft" in response.text
+                assert "Activate" in response.text
+        finally:
+            rule_path.unlink(missing_ok=True)
+            test_path.unlink(missing_ok=True)
+
+    asyncio.run(exercise())
+
+
+def test_admin_rules_activate_syncs_banner_rule(tmp_path):
+    rule_path = Path("rules/session4_activation_banner_route.py")
+    test_path = Path("tests/rules/test_session4_activation_banner_route.py")
+    rule_source = (
+        "from rules._base import InventorySnapshot, Rule, ShowBanner\n\n"
+        "def evaluate(snapshot: InventorySnapshot):\n"
+        "    for sku in snapshot.skus:\n"
+        "        if 'hoodie' in sku.name.lower() and sku.stock_count < 10:\n"
+        "            return [ShowBanner(text='Hoodies are running low.', severity='warning')]\n"
+        "    return []\n\n"
+        "RULE = Rule(name='Activation banner route', description='Banner on activation.', evaluate=evaluate)\n"
+    )
+
+    async def exercise() -> None:
+        try:
+            rule_path.write_text(rule_source)
+            test_path.write_text("def test_placeholder():\n    assert True\n")
+            async with _client(tmp_path) as client:
+                from app.db import SessionLocal
+
+                with SessionLocal() as session:
+                    record = RuleFile(
+                        filename=rule_path.name,
+                        test_filename=str(test_path),
+                        description="Banner on activation.",
+                        status="inactive_draft",
+                        status_detail="Ready to activate.",
+                        generation_log="1 passed",
+                    )
+                    session.add(record)
+                    session.commit()
+                    rule_id = record.id
+
+                await _login(client)
+                rules_response = await client.get("/admin/rules")
+                csrf_token = _extract_csrf(rules_response.text)
+
+                response = await client.post(
+                    f"/admin/rules/{rule_id}/activate",
+                    data={"csrf_token": csrf_token},
+                    follow_redirects=False,
+                )
+
+                assert response.status_code == 303
+                detail_response = await client.get("/products/mens-commute-hoodie")
+                assert "Hoodies are running low." in detail_response.text
+                assert "banner-warning" in detail_response.text
+        finally:
+            rule_path.unlink(missing_ok=True)
+            test_path.unlink(missing_ok=True)
 
     asyncio.run(exercise())
 
