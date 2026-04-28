@@ -159,6 +159,28 @@ a {
   text-decoration: none;
 }
 
+.product-title-row,
+.detail-title-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.stock-badge {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  color: #9a3412;
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 7px 9px;
+  text-transform: uppercase;
+}
+
 .product-meta,
 .detail-meta {
   color: var(--muted);
@@ -201,6 +223,29 @@ a {
   font-size: clamp(2.25rem, 5vw, 4.5rem);
   line-height: 1;
   margin: 0;
+}
+
+.detail-title-row .stock-badge {
+  margin-top: 8px;
+}
+
+.rule-banner {
+  border-radius: 8px;
+  font-weight: 800;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+}
+
+.banner-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.banner-warning {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
 }
 
 .detail-description {
@@ -260,6 +305,13 @@ a {
   margin: 0;
 }
 
+.admin-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .admin-panel {
   border-top: 1px solid var(--line);
   padding: 28px 0;
@@ -297,6 +349,7 @@ a {
 }
 
 .admin-form button,
+.rules-sync-panel button,
 .secondary-button,
 .danger-button {
   align-self: end;
@@ -315,6 +368,12 @@ a {
   background: var(--soft);
   border: 1px solid var(--line);
   color: var(--ink);
+}
+
+.link-button {
+  align-items: center;
+  display: inline-flex;
+  text-decoration: none;
 }
 
 .danger-button {
@@ -344,6 +403,101 @@ a {
   padding: 18px;
 }
 
+.admin-dashboard-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-dashboard-button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  display: grid;
+  gap: 8px;
+  min-height: 132px;
+  padding: 20px;
+  text-decoration: none;
+}
+
+.admin-dashboard-button strong {
+  font-size: 1.2rem;
+}
+
+.admin-dashboard-button span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.muted-text {
+  color: var(--muted);
+  margin: 10px 0 0;
+}
+
+.rules-sync-panel {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.rule-file-list,
+.action-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.rule-file-row,
+.action-row {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 14px;
+}
+
+.rule-file-row h3 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.rule-file-row p {
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+.action-row {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.status-pill {
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 7px 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status-quarantined {
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+.status-inactive_draft {
+  background: #f4f6f8;
+  color: #4b5563;
+}
+
 @media (max-width: 760px) {
   .site-header {
     height: 56px;
@@ -366,6 +520,16 @@ a {
   .admin-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .rules-sync-panel,
+  .rule-file-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-dashboard-grid {
+    grid-template-columns: 1fr;
   }
 
   .product-form {

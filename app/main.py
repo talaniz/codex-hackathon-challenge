@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.db import configure_database, create_db
-from app.routes import admin, store
+from app.routes import admin, rules, store
 from app.auth import seed_admin_user
 from app.services.inventory import seed_products
 
@@ -31,6 +31,7 @@ def create_app(database_url: str | None = None) -> FastAPI:
     app.mount("/static", StaticFiles(directory="static"), name="static")
     app.include_router(store.router)
     app.include_router(admin.router)
+    app.include_router(rules.router)
     return app
 
 

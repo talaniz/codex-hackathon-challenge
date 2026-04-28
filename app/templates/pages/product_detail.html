@@ -9,8 +9,16 @@
     </div>
     <div class="detail-copy">
       <a class="back-link" href="/">Back to products</a>
+      {% for banner in banners %}
+        <p class="rule-banner banner-{{ banner.banner_severity }}">{{ banner.banner_text }}</p>
+      {% endfor %}
       <p class="category">{{ product.category }}</p>
-      <h1>{{ product.name }}</h1>
+      <div class="detail-title-row">
+        <h1>{{ product.name }}</h1>
+        {% if visibility_state == "low_stock_badge" %}
+          <span class="stock-badge">Low stock</span>
+        {% endif %}
+      </div>
       <p class="detail-description">{{ product.description }}</p>
       <div class="detail-meta">
         <span>${{ "%.2f"|format(product.price_cents / 100) }}</span>

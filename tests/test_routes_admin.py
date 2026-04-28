@@ -8,7 +8,7 @@ from httpx import ASGITransport, AsyncClient
 from app.main import create_app
 
 
-def test_admin_login_success_redirects_to_inventory(tmp_path):
+def test_admin_login_success_redirects_to_dashboard(tmp_path):
     async def exercise() -> None:
         async with _client(tmp_path) as client:
             csrf_token = await _csrf_token(client)
@@ -19,11 +19,12 @@ def test_admin_login_success_redirects_to_inventory(tmp_path):
             )
 
             assert response.status_code == 303
-            assert response.headers["location"] == "/admin/inventory"
+            assert response.headers["location"] == "/admin"
 
-            inventory_response = await client.get("/admin/inventory")
-            assert inventory_response.status_code == 200
-            assert "Current Products" in inventory_response.text
+            dashboard_response = await client.get("/admin")
+            assert dashboard_response.status_code == 200
+            assert "Manage Inventory" in dashboard_response.text
+            assert "Manage Rules" in dashboard_response.text
 
     asyncio.run(exercise())
 
@@ -47,6 +48,17 @@ def test_admin_inventory_requires_login(tmp_path):
     async def exercise() -> None:
         async with _client(tmp_path) as client:
             response = await client.get("/admin/inventory", follow_redirects=False)
+
+            assert response.status_code == 303
+            assert response.headers["location"] == "/admin/login"
+
+    asyncio.run(exercise())
+
+
+def test_admin_dashboard_requires_login(tmp_path):
+    async def exercise() -> None:
+        async with _client(tmp_path) as client:
+            response = await client.get("/admin", follow_redirects=False)
 
             assert response.status_code == 303
             assert response.headers["location"] == "/admin/login"

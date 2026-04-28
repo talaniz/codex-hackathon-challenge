@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Rules Admin · Codex Clothiers{% endblock %}
+
+{% block content %}
+  <section class="admin-shell" aria-labelledby="rules-heading">
+    <div class="admin-heading">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1 id="rules-heading">Rules</h1>
+      </div>
+      <div class="admin-actions">
+        <a class="secondary-button link-button" href="/admin">Dashboard</a>
+        <a class="secondary-button link-button" href="/admin/inventory">Inventory</a>
+        <form method="post" action="/admin/logout">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="secondary-button" type="submit">Log out</button>
+        </form>
+      </div>
+    </div>
+
+    <section class="admin-panel rules-sync-panel" aria-labelledby="sync-heading">
+      <div>
+        <h2 id="sync-heading">Latest Sync</h2>
+        {% if latest_sync %}
+          <p class="muted-text">{{ latest_sync.summary }}</p>
+        {% else %}
+          <p class="muted-text">No sync has run yet.</p>
+        {% endif %}
+      </div>
+      <form method="post" action="/admin/rules/sync">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit">Sync Now</button>
+      </form>
+    </section>
+
+    <section class="admin-panel" aria-labelledby="rule-files-heading">
+      <h2 id="rule-files-heading">Rule Files</h2>
+      <div class="rule-file-list">
+        {% for rule_file in rule_files %}
+          <article class="rule-file-row">
+            <div>
+              <h3>{{ rule_file.filename }}</h3>
+              {% if rule_file.status_detail %}
+                <p>{{ rule_file.status_detail }}</p>
+              {% endif %}
+            </div>
+            <span class="status-pill status-{{ rule_file.status }}">{{ rule_file.status.replace("_", " ") }}</span>
+          </article>
+        {% else %}
+          <p class="muted-text">No rule files found.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-panel" aria-labelledby="actions-heading">
+      <h2 id="actions-heading">Dispatched Actions</h2>
+      <div class="action-list">
+        {% for action in actions %}
+          <article class="action-row">
+            <span>{{ action.rule_filename }}</span>
+            <strong>{{ action.action_type.replace("_", " ") }}</strong>
+            {% if action.sku %}<span>{{ action.sku }}</span>{% endif %}
+            {% if action.visibility_state %}<span>{{ action.visibility_state }}</span>{% endif %}
+            {% if action.tag %}<span>{{ action.tag }}</span>{% endif %}
+            {% if action.banner_text %}<span>{{ action.banner_text }}</span>{% endif %}
+            {% if action.notification_text %}<span>{{ action.notification_text }}</span>{% endif %}
+          </article>
+        {% else %}
+          <p class="muted-text">No actions dispatched.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </section>
+{% endblock %}

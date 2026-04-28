@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Admin · Codex Clothiers{% endblock %}
+
+{% block content %}
+  <section class="admin-shell" aria-labelledby="admin-heading">
+    <div class="admin-heading">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1 id="admin-heading">Dashboard</h1>
+      </div>
+      <div class="admin-actions">
+        <form method="post" action="/admin/logout">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="secondary-button" type="submit">Log out</button>
+        </form>
+      </div>
+    </div>
+
+    <section class="admin-panel admin-dashboard-grid" aria-label="Admin sections">
+      <a class="admin-dashboard-button" href="/admin/inventory">
+        <strong>Manage Inventory</strong>
+        <span>Create, edit, and delete storefront products.</span>
+      </a>
+      <a class="admin-dashboard-button" href="/admin/rules">
+        <strong>Manage Rules</strong>
+        <span>Sync active rules and inspect dispatched actions.</span>
+      </a>
+    </section>
+  </section>
+{% endblock %}

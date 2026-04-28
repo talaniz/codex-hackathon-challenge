@@ -19,19 +19,26 @@
     </div>
     <div class="product-grid">
       {% for product in products %}
+        {% if visibility.get(product.slug) != "hidden" %}
         <article class="product-card">
           <a href="/products/{{ product.slug }}" class="product-image-link">
             <img src="{{ url_for('static', path='/' ~ product.image_filename) }}" alt="{{ product.name }}" class="product-image">
           </a>
           <div class="product-card-body">
             <p class="category">{{ product.category }}</p>
-            <h3><a href="/products/{{ product.slug }}">{{ product.name }}</a></h3>
+            <div class="product-title-row">
+              <h3><a href="/products/{{ product.slug }}">{{ product.name }}</a></h3>
+              {% if visibility.get(product.slug) == "low_stock_badge" %}
+                <span class="stock-badge">Low stock</span>
+              {% endif %}
+            </div>
             <div class="product-meta">
               <span>${{ "%.2f"|format(product.price_cents / 100) }}</span>
               <span>{{ product.stock_count }} in stock</span>
             </div>
           </div>
         </article>
+        {% endif %}
       {% endfor %}
     </div>
   </section>

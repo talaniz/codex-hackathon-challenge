@@ -67,7 +67,7 @@ def login(
         return response
 
     session_data = {"admin_id": admin.id}
-    response = RedirectResponse("/admin/inventory", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
     write_session(response, session_data)
     return response
 
@@ -76,6 +76,18 @@ def login(
 def logout(_: AdminDep, __: CsrfDep):
     response = RedirectResponse("/admin/login", status_code=status.HTTP_303_SEE_OTHER)
     clear_session(response)
+    return response
+
+
+@router.get("")
+def admin_dashboard(request: Request, _: AdminDep):
+    csrf_token, session_data = ensure_csrf_token(request)
+    response = templates.TemplateResponse(
+        request,
+        "pages/admin_dashboard.html",
+        {"csrf_token": csrf_token},
+    )
+    write_session(response, session_data)
     return response
 
 
