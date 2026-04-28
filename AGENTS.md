@@ -177,6 +177,18 @@ packages.
   on startup is fine
 - Any external service beyond Codex itself
 
+## Storefront rendering
+After rules run and actions are dispatched:
+- `ShowBanner` actions must render a visible banner on the affected 
+  product's storefront page with the specified text and severity 
+  (warning = red, info = blue)
+- `SetVisibility` with `low_stock_badge` must show a badge on the 
+  product card on the main storefront and on the product detail page
+- `TagSku` tags must be stored and queryable but don't need UI 
+  representation in this demo
+- The storefront reads the latest dispatched action results on every 
+  page load — no caching
+
 ## Build sessions plan
 
 Each session is a separate Codex invocation. Commit between sessions.
@@ -218,6 +230,8 @@ Acceptance:
   on each), runs them against a snapshot, dispatches actions.
 - "Sync Now" button in admin runs the engine and shows results.
 - `tests/rules/test_example_clearance.py` passes.
+- After "Sync Now", affected products show banners or badges on the 
+  public storefront reflecting the dispatched actions.
 
 ### Session 4 — Codex integration
 Goal: admin types a rule in English, Codex writes the file and test
