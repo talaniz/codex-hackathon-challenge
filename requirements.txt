@@ -1,0 +1,6 @@
+fastapi[standard]==0.136.1
+sqlalchemy==2.0.49
+pytest>=8,<9
+itsdangerous==2.2.0
+passlib[bcrypt]==1.7.4
+openai

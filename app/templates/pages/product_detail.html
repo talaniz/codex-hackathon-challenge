@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} | Codex Clothiers{% endblock %}
+
+{% block content %}
+  <section class="detail-layout">
+    <div class="detail-media">
+      <img src="{{ url_for('static', path='/' ~ product.image_filename) }}" alt="{{ product.name }}">
+    </div>
+    <div class="detail-copy">
+      <a class="back-link" href="/">Back to products</a>
+      <p class="category">{{ product.category }}</p>
+      <h1>{{ product.name }}</h1>
+      <p class="detail-description">{{ product.description }}</p>
+      <div class="detail-meta">
+        <span>${{ "%.2f"|format(product.price_cents / 100) }}</span>
+        <span>{{ product.stock_count }} in stock</span>
+      </div>
+    </div>
+  </section>
+{% endblock %}

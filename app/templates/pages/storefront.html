@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Codex Clothiers{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <img src="{{ url_for('static', path='/main_page.jpg') }}" alt="Clothing display" class="hero-image">
+    <div class="hero-copy">
+      <p class="eyebrow">Spring inventory</p>
+      <h1>Everyday layers, ready now.</h1>
+      <p>Browse stocked essentials for men and women.</p>
+    </div>
+  </section>
+
+  <section class="product-section" aria-labelledby="products-heading">
+    <div class="section-heading">
+      <h2 id="products-heading">Current Stock</h2>
+      <p>{{ products|length }} products available</p>
+    </div>
+    <div class="product-grid">
+      {% for product in products %}
+        <article class="product-card">
+          <a href="/products/{{ product.slug }}" class="product-image-link">
+            <img src="{{ url_for('static', path='/' ~ product.image_filename) }}" alt="{{ product.name }}" class="product-image">
+          </a>
+          <div class="product-card-body">
+            <p class="category">{{ product.category }}</p>
+            <h3><a href="/products/{{ product.slug }}">{{ product.name }}</a></h3>
+            <div class="product-meta">
+              <span>${{ "%.2f"|format(product.price_cents / 100) }}</span>
+              <span>{{ product.stock_count }} in stock</span>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

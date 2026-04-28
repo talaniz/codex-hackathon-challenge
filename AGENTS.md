@@ -22,8 +22,9 @@ on the next sync.
 - itsdangerous == 2.2.0  (signed session cookies)
 - passlib[bcrypt] == 1.7.4
 - httpx == 0.28.1  (test client; use AsyncClient, not TestClient)
-- codex_app_server  (Codex Python SDK, version pinned by the local
-  Codex CLI install — do not hand-pin)
+- openai  (OpenAI Python SDK — used in app/services/codex_client.py 
+  to invoke Codex programmatically for rule generation; version pinned 
+  by the local Codex CLI install — do not hand-pin)
 
 Use Annotated[...] with Depends() for FastAPI dependencies.
 Use PEP 604 unions (X | None).
