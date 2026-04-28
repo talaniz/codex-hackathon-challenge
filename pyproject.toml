@@ -9,6 +9,7 @@ dependencies = [
     "pytest>=8,<9",
     "itsdangerous==2.2.0",
     "passlib[bcrypt]==1.7.4",
+    "bcrypt<4.1",
     "openai",
 ]
 

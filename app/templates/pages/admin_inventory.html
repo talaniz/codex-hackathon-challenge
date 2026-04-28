@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Admin · Codex Clothiers{% endblock %}
+
+{% block content %}
+  <section class="admin-shell" aria-labelledby="inventory-heading">
+    <div class="admin-heading">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1 id="inventory-heading">Inventory</h1>
+      </div>
+      <form method="post" action="/admin/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="secondary-button" type="submit">Log out</button>
+      </form>
+    </div>
+
+    {% if error %}
+      <p class="form-error">{{ error }}</p>
+    {% endif %}
+
+    <section class="admin-panel" aria-labelledby="new-product-heading">
+      <h2 id="new-product-heading">Create Product</h2>
+      <form class="admin-form product-form" method="post" action="/admin/inventory">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {% include "partials/product_fields.html" %}
+        <button type="submit">Create product</button>
+      </form>
+    </section>
+
+    <section class="admin-panel" aria-labelledby="current-products-heading">
+      <h2 id="current-products-heading">Current Products</h2>
+      <div class="inventory-list">
+        {% for product in products %}
+          <article class="inventory-item" data-product-slug="{{ product.slug }}">
+            <form class="admin-form product-form" method="post" action="/admin/inventory/{{ product.id }}/edit">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              {% include "partials/product_fields.html" %}
+              <button type="submit">Save changes</button>
+            </form>
+            <form method="post" action="/admin/inventory/{{ product.id }}/delete">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="danger-button" type="submit">Delete</button>
+            </form>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  </section>
+{% endblock %}

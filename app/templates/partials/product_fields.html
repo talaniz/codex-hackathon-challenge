@@ -1,0 +1,28 @@
+<label>
+  Slug
+  <input name="slug" value="{{ product.slug if product is defined else '' }}" required>
+</label>
+<label>
+  Name
+  <input name="name" value="{{ product.name if product is defined else '' }}" required>
+</label>
+<label>
+  Description
+  <textarea name="description" rows="3" required>{{ product.description if product is defined else '' }}</textarea>
+</label>
+<label>
+  Price cents
+  <input name="price_cents" type="number" min="0" value="{{ product.price_cents if product is defined else '' }}" required>
+</label>
+<label>
+  Stock count
+  <input name="stock_count" type="number" min="0" value="{{ product.stock_count if product is defined else '' }}" required>
+</label>
+<label>
+  Image filename
+  <input name="image_filename" value="{{ product.image_filename if product is defined else 'white_tshirt.jpg' }}" required>
+</label>
+<label>
+  Category
+  <input name="category" value="{{ product.category if product is defined else '' }}" required>
+</label>

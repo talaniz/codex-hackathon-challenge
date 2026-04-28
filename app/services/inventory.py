@@ -94,3 +94,66 @@ def list_products(session: Session) -> list[Product]:
 
 def get_product_by_slug(session: Session, slug: str) -> Product | None:
     return session.scalar(select(Product).where(Product.slug == slug))
+
+
+def get_product(session: Session, product_id: int) -> Product | None:
+    return session.get(Product, product_id)
+
+
+def get_product_by_slug_excluding_id(session: Session, slug: str, product_id: int) -> Product | None:
+    return session.scalar(select(Product).where(Product.slug == slug, Product.id != product_id))
+
+
+def create_product(
+    session: Session,
+    *,
+    slug: str,
+    name: str,
+    description: str,
+    price_cents: int,
+    stock_count: int,
+    image_filename: str,
+    category: str,
+) -> Product:
+    product = Product(
+        slug=slug,
+        name=name,
+        description=description,
+        price_cents=price_cents,
+        stock_count=stock_count,
+        image_filename=image_filename,
+        category=category,
+    )
+    session.add(product)
+    session.commit()
+    session.refresh(product)
+    return product
+
+
+def update_product(
+    session: Session,
+    product: Product,
+    *,
+    slug: str,
+    name: str,
+    description: str,
+    price_cents: int,
+    stock_count: int,
+    image_filename: str,
+    category: str,
+) -> Product:
+    product.slug = slug
+    product.name = name
+    product.description = description
+    product.price_cents = price_cents
+    product.stock_count = stock_count
+    product.image_filename = image_filename
+    product.category = category
+    session.commit()
+    session.refresh(product)
+    return product
+
+
+def delete_product(session: Session, product: Product) -> None:
+    session.delete(product)
+    session.commit()
