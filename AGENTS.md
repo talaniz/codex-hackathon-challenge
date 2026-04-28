@@ -189,6 +189,12 @@ After rules run and actions are dispatched:
 - The storefront reads the latest dispatched action results on every 
   page load — no caching
 
+## Admin routes:
+- /admin/inventory — CRUD for products (already built in Session 2)
+- /admin/rules — list active rules, "Sync Now" button, sync results
+- /admin/rules/generate — natural language input form, Codex output 
+  diff view, Activate button
+
 ## Build sessions plan
 
 Each session is a separate Codex invocation. Commit between sessions.
