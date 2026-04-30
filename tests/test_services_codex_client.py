@@ -12,3 +12,5 @@ def test_build_prompt_lists_exact_show_banner_constructor():
     assert "ShowBanner uses text= for its message content." in prompt
     assert "Never use message= with ShowBanner." in prompt
     assert "match against sku.name as well as sku.category" in prompt
+    assert "spring-wide-15-discount" in prompt
+    assert "strikethrough and discounted detail-page prices" in prompt

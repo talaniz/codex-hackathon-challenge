@@ -3,6 +3,14 @@
 {% block title %}Codex Clothiers{% endblock %}
 
 {% block content %}
+  {% if global_banners %}
+    <section class="storefront-banners" aria-label="Storefront announcements">
+      {% for banner in global_banners %}
+        <p class="rule-banner banner-{{ banner.banner_severity }}">{{ banner.banner_text }}</p>
+      {% endfor %}
+    </section>
+  {% endif %}
+
   <section class="hero">
     <img src="{{ url_for('static', path='/main_page.jpg') }}" alt="Clothing display" class="hero-image">
     <div class="hero-copy">

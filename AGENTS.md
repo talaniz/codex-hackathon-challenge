@@ -188,12 +188,22 @@ After rules run and actions are dispatched:
   representation in this demo
 - The storefront reads the latest dispatched action results on every 
   page load — no caching
+- When a rule is deactivated or deleted, its dispatched actions are 
+  cleared immediately. The storefront reflects the cleared state on 
+  next page load.
 
 ## Admin routes:
+- /admin - the admin dashboard landing page that the login redirects 
+  to showing to buttons: Manage Inventory linking to /admin/inventory 
+  and Manage Rules linking to /admin/rules
 - /admin/inventory — CRUD for products (already built in Session 2)
 - /admin/rules — list active rules, "Sync Now" button, sync results
 - /admin/rules/generate — natural language input form, Codex output 
   diff view, Activate button
+- /admin/rules — list active rules showing the original natural language 
+  description (not the filename) with status badge, individual Deactivate/
+  Delete button per rule, a Clear All Rules button, Sync Now button, 
+  and latest sync results
 
 ## Build sessions plan
 
@@ -258,3 +268,9 @@ files as inactive drafts, show the pytest failure output, and do not activate th
 - Activated rules run on next "Sync Now."
 - Polish: clean banner UI when a rule fires, simple "what Codex did"
   log.
+- Rule listings on /admin/rules display the original natural language 
+  description, not the Python filename
+- Individual rules can be deactivated or deleted
+- Clearing a rule immediately removes its dispatched actions from the 
+  database
+- A Clear All Rules button removes all rules and their dispatched actions

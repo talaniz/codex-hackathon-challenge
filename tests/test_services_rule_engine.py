@@ -11,6 +11,7 @@ from app.services.rule_engine import (
     clear_active_rules,
     deactivate_rule,
     delete_rule,
+    discount_percent_by_sku,
     list_current_actions,
     list_rule_files,
     run_sync,
@@ -85,6 +86,22 @@ def test_deactivate_rule_cleans_dispatched_actions(tmp_path):
         assert updated is not None
         assert updated.status == INACTIVE
         assert not any(action.rule_filename == "example_clearance.py" for action in list_current_actions(session))
+
+
+def test_discount_percent_by_sku_reads_discount_tags(tmp_path):
+    rule_path, test_path = _write_discount_rule("session4_discount_rule")
+    session_factory = _make_session_factory(tmp_path)
+    try:
+        with session_factory() as session:
+            seed_products(session)
+            list_rule_files(session)
+
+            run_sync(session)
+
+            assert discount_percent_by_sku(session)["mens-commute-hoodie"] == 15
+    finally:
+        rule_path.unlink(missing_ok=True)
+        test_path.unlink(missing_ok=True)
 
 
 def test_delete_rule_removes_files_and_actions(tmp_path):
@@ -169,6 +186,19 @@ def _write_generated_rule(name: str):
         "        if sku.sku == 'mens-commute-hoodie'\n"
         "    ]\n\n"
         f"RULE = Rule(name='{name}', description='Generated cleanup test rule.', evaluate=evaluate)\n"
+    )
+    test_path.write_text("def test_placeholder():\n    assert True\n")
+    return rule_path, test_path
+
+
+def _write_discount_rule(name: str):
+    rule_path = Path("rules") / f"{name}.py"
+    test_path = Path("tests/rules") / f"test_{name}.py"
+    rule_path.write_text(
+        "from rules._base import InventorySnapshot, Rule, TagSku\n\n"
+        "def evaluate(snapshot: InventorySnapshot):\n"
+        "    return [TagSku(sku=sku.sku, tag='spring-wide-15-discount') for sku in snapshot.skus]\n\n"
+        f"RULE = Rule(name='{name}', description='Generated discount tag test rule.', evaluate=evaluate)\n"
     )
     test_path.write_text("def test_placeholder():\n    assert True\n")
     return rule_path, test_path

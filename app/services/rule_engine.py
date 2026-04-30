@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -230,6 +231,37 @@ def banners_for_sku(session: Session, sku: str) -> list[DispatchedRuleAction]:
     )
 
 
+def global_banners(session: Session) -> list[DispatchedRuleAction]:
+    return list(
+        session.scalars(
+            select(DispatchedRuleAction)
+            .where(
+                DispatchedRuleAction.action_type == "show_banner",
+                DispatchedRuleAction.sku.is_(None),
+            )
+            .order_by(DispatchedRuleAction.id)
+        ).all()
+    )
+
+
+def discount_percent_by_sku(session: Session) -> dict[str, int]:
+    actions = session.scalars(
+        select(DispatchedRuleAction).where(
+            DispatchedRuleAction.action_type == "tag_sku",
+            DispatchedRuleAction.sku.is_not(None),
+            DispatchedRuleAction.tag.is_not(None),
+        )
+    )
+    discounts: dict[str, int] = {}
+    for action in actions:
+        if action.sku is None or action.tag is None:
+            continue
+        discount_percent = _discount_percent_from_tag(action.tag)
+        if discount_percent is not None:
+            discounts[action.sku] = discount_percent
+    return discounts
+
+
 def _iter_rule_paths() -> list[Path]:
     if not RULES_DIR.exists():
         return []
@@ -313,6 +345,16 @@ def _quarantine_rule(session: Session, filename: str, detail: str) -> None:
 
 def _count_quarantined(session: Session) -> int:
     return len(session.scalars(select(RuleFile).where(RuleFile.status == QUARANTINED)).all())
+
+
+def _discount_percent_from_tag(tag: str) -> int | None:
+    match = re.search(r"(?:^|[-_])([1-9][0-9]?)(?:[-_])discount(?:$|[-_])", tag)
+    if match is None:
+        return None
+    discount_percent = int(match.group(1))
+    if discount_percent >= 100:
+        return None
+    return discount_percent
 
 
 def _delete_actions_for_rule(session: Session, filename: str) -> None:

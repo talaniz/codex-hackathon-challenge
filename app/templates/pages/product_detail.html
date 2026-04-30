@@ -21,7 +21,15 @@
       </div>
       <p class="detail-description">{{ product.description }}</p>
       <div class="detail-meta">
-        <span>${{ "%.2f"|format(product.price_cents / 100) }}</span>
+        {% if discount_percent %}
+          {% set discounted_price_cents = (product.price_cents * (100 - discount_percent) / 100)|round(0, "floor") %}
+          <span class="price-stack">
+            <span class="original-price">${{ "%.2f"|format(product.price_cents / 100) }}</span>
+            <span class="discounted-price">${{ "%.2f"|format(discounted_price_cents / 100) }}</span>
+          </span>
+        {% else %}
+          <span>${{ "%.2f"|format(product.price_cents / 100) }}</span>
+        {% endif %}
         <span>{{ product.stock_count }} in stock</span>
       </div>
     </div>

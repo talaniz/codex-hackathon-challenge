@@ -163,6 +163,66 @@ def test_admin_rules_activate_syncs_banner_rule(tmp_path):
     asyncio.run(exercise())
 
 
+def test_admin_rules_activate_syncs_storefront_banner_and_discount_prices(tmp_path):
+    rule_path = Path("rules/session4_activation_sale_route.py")
+    test_path = Path("tests/rules/test_session4_activation_sale_route.py")
+    rule_source = (
+        "from rules._base import InventorySnapshot, Rule, ShowBanner, TagSku\n\n"
+        "def evaluate(snapshot: InventorySnapshot):\n"
+        "    actions = [ShowBanner(text='Route test spring-wide 15% discount.', severity='info')]\n"
+        "    for sku in snapshot.skus:\n"
+        "        actions.append(TagSku(sku=sku.sku, tag='spring-wide-15-discount'))\n"
+        "    return actions\n\n"
+        "RULE = Rule(name='Activation sale route', description='Sale banner and prices.', evaluate=evaluate)\n"
+    )
+
+    async def exercise() -> None:
+        try:
+            rule_path.write_text(rule_source)
+            test_path.write_text("def test_placeholder():\n    assert True\n")
+            async with _client(tmp_path) as client:
+                from app.db import SessionLocal
+
+                with SessionLocal() as session:
+                    record = RuleFile(
+                        filename=rule_path.name,
+                        test_filename=str(test_path),
+                        description="Sale banner and prices.",
+                        status="inactive_draft",
+                        status_detail="Ready to activate.",
+                        generation_log="1 passed",
+                    )
+                    session.add(record)
+                    session.commit()
+                    rule_id = record.id
+
+                await _login(client)
+                rules_response = await client.get("/admin/rules")
+                csrf_token = _extract_csrf(rules_response.text)
+
+                response = await client.post(
+                    f"/admin/rules/{rule_id}/activate",
+                    data={"csrf_token": csrf_token},
+                    follow_redirects=False,
+                )
+
+                assert response.status_code == 303
+                storefront_response = await client.get("/")
+                assert "Route test spring-wide 15% discount." in storefront_response.text
+                assert "storefront-banners" in storefront_response.text
+
+                detail_response = await client.get("/products/mens-commute-hoodie")
+                assert "original-price" in detail_response.text
+                assert "discounted-price" in detail_response.text
+                assert "$70.00" in detail_response.text
+                assert "$59.50" in detail_response.text
+        finally:
+            rule_path.unlink(missing_ok=True)
+            test_path.unlink(missing_ok=True)
+
+    asyncio.run(exercise())
+
+
 @asynccontextmanager
 async def _client(tmp_path) -> AsyncIterator[AsyncClient]:
     database_url = f"sqlite:///{tmp_path / 'routes-rules.db'}"

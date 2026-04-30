@@ -138,6 +138,8 @@ Generated rule constraints:
 - ShowBanner uses text= for its message content. Never use message= with ShowBanner.
 - For product-type requests like hoodies, sweaters, tees, or denim, match against sku.name as well as sku.category.
   Seeded categories may be broad values like Men, Women, Basics, or Denim, while the product type may appear only in sku.name.
+- For discount display requests, tag affected products with TagSku using a tag shaped like spring-wide-15-discount.
+  The storefront derives strikethrough and discounted detail-page prices from tags ending in <percent>-discount.
 - Do not access files, network, environment, database, current time, or Codex.
 - Tests may import only rules._base, rules.{snake_name}, and the Python standard library.
 - Keep tests focused and deterministic.

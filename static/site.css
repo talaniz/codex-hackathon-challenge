@@ -97,10 +97,15 @@ a {
 }
 
 .product-section,
+.storefront-banners,
 .detail-layout {
   margin: 0 auto;
   max-width: 1180px;
   padding: 56px clamp(20px, 5vw, 64px);
+}
+
+.storefront-banners {
+  padding-bottom: 0;
 }
 
 .section-heading {
@@ -262,6 +267,21 @@ a {
   justify-content: flex-start;
   margin-top: 32px;
   padding-top: 20px;
+}
+
+.price-stack {
+  display: inline-grid;
+  gap: 4px;
+}
+
+.original-price {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.discounted-price {
+  color: #047857;
+  font-size: 1.25rem;
 }
 
 .site-nav {
